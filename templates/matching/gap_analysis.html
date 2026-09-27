@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Skill Gap Analysis: {{ job.title }} - SkillMatch{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12 mb-3">
+    <a href="{% url 'jobs:job_detail' job.id %}" class="text-decoration-none text-muted small">
+      &larr; Back to Job: {{ job.title }}
+    </a>
+  </div>
+
+  <!-- Header Card with Overall Score -->
+  <div class="col-12 mb-4">
+    <div class="card p-4 border-0 shadow-sm bg-white">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <span class="badge bg-primary mb-2">Automated Skill-Gap Report</span>
+          <h2 class="fw-bold mb-1">{{ job.title }}</h2>
+          <h5 class="text-muted">{{ job.company_name }} &bull; {{ job.location }}</h5>
+          <p class="text-secondary small mb-0 mt-2">
+            Targeting candidate: <strong>{{ candidate.user.get_full_name|default:candidate.user.username }}</strong>
+            ({{ candidate.years_of_experience }} yrs exp &bull; {{ candidate.get_education_level_display }})
+          </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+          <div class="d-inline-flex flex-column align-items-center">
+            <div class="match-ring {% if breakdown.total_score >= 75 %}match-high{% elif breakdown.total_score >= 50 %}match-mid{% else %}match-low{% endif %} fs-2 shadow-sm" style="width: 100px; height: 100px;">
+              {{ breakdown.total_score }}%
+            </div>
+            <span class="fw-bold mt-2">Overall Match Score</span>
+            <span class="small text-muted">Rule-Based Weighted Calculation</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three Score Component Cards -->
+  <div class="col-md-4 mb-4">
+    <div class="card p-3 h-100 border-start border-4 border-primary">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold text-dark mb-0">1. Required Skills (60%)</h6>
+        <span class="badge bg-primary fs-6">{{ breakdown.skill_score }}%</span>
+      </div>
+      <div class="progress mb-2" style="height: 8px;">
+        <div class="progress-bar bg-primary" style="width: {{ breakdown.skill_score }}%;"></div>
+      </div>
+      <p class="small text-muted mb-0">
+        {{ breakdown.matched_skills|length }} matched out of {{ breakdown.matched_skills|length|add:breakdown.missing_skills|length }} required skills.
+      </p>
+    </div>
+  </div>
+
+  <div class="col-md-4 mb-4">
+    <div class="card p-3 h-100 border-start border-4 border-info">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold text-dark mb-0">2. Experience Fit (20%)</h6>
+        <span class="badge bg-info text-dark fs-6">{{ breakdown.experience_score }}%</span>
+      </div>
+      <div class="progress mb-2" style="height: 8px;">
+        <div class="progress-bar bg-info" style="width: {{ breakdown.experience_score }}%;"></div>
+      </div>
+      <p class="small text-muted mb-0">
+        Candidate has {{ candidate.years_of_experience }} yr(s) vs {{ job.min_experience_years }} yr(s) required.
+      </p>
+    </div>
+  </div>
+
+  <div class="col-md-4 mb-4">
+    <div class="card p-3 h-100 border-start border-4 border-warning">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold text-dark mb-0">3. Education Fit (20%)</h6>
+        <span class="badge bg-warning text-dark fs-6">{{ breakdown.education_score }}%</span>
+      </div>
+      <div class="progress mb-2" style="height: 8px;">
+        <div class="progress-bar bg-warning" style="width: {{ breakdown.education_score }}%;"></div>
+      </div>
+      <p class="small text-muted mb-0">
+        Candidate: {{ candidate.get_education_level_display }} &bull; Job: {{ job.get_min_education_level_display }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Detailed Skill Breakdown (Matched vs Missing) -->
+  <div class="col-lg-7 mb-4">
+    <div class="card p-4">
+      <h5 class="fw-bold border-bottom pb-2 mb-3">
+        <i class="bi bi-diagram-3-fill text-primary me-2"></i>Skill Matrix Comparison
+      </h5>
+
+      <!-- Matched Skills -->
+      <div class="mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="fw-bold text-success">
+            <i class="bi bi-check-circle-fill me-1"></i>Matched Skills ({{ breakdown.matched_skills|length }})
+          </span>
+          <span class="badge bg-success-subtle text-success border border-success-subtle">Already in Profile</span>
+        </div>
+        {% if breakdown.matched_skills %}
+          <div class="d-flex flex-wrap gap-2">
+            {% for skill in breakdown.matched_skills %}
+              <div class="badge-matched badge-skill py-2 px-3 fs-6">
+                <i class="bi bi-check-lg me-1"></i><strong>{{ skill }}</strong>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted small">No overlapping skills detected.</p>
+        {% endif %}
+      </div>
+
+      <!-- Missing Skills (The Gap!) -->
+      <div class="mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="fw-bold text-danger">
+            <i class="bi bi-x-circle-fill me-1"></i>Missing Required Skills ({{ breakdown.missing_skills|length }})
+          </span>
+          <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Skill Gap Identified</span>
+        </div>
+        {% if breakdown.missing_skills %}
+          <div class="d-flex flex-wrap gap-2">
+            {% for skill in breakdown.missing_skills %}
+              <div class="badge-missing badge-skill py-2 px-3 fs-6">
+                <i class="bi bi-exclamation-circle me-1"></i><strong>{{ skill }}</strong>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="alert alert-warning mt-3 small">
+            <i class="bi bi-lightbulb-fill me-1"></i><strong>Skill-Gap Recommendation:</strong>
+            Learning or adding proof of experience with <strong>{{ breakdown.missing_skills|join:", " }}</strong> would increase your match score up to 100%!
+          </div>
+        {% else %}
+          <div class="alert alert-success mt-2 small">
+            <i class="bi bi-trophy-fill me-1"></i><strong>Zero Skill Gap!</strong> You have acquired 100% of the mandatory required skills for this position.
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Preferred Skills If Any -->
+      {% if breakdown.preferred_matched or breakdown.preferred_missing %}
+        <div class="border-top pt-3 mt-3">
+          <h6 class="fw-bold text-secondary mb-2">Bonus / Preferred Skills</h6>
+          <div class="d-flex flex-wrap gap-2">
+            {% for skill in breakdown.preferred_matched %}
+              <span class="badge bg-light text-success border border-success">
+                <i class="bi bi-star-fill text-warning me-1"></i>{{ skill }} (Possessed)
+              </span>
+            {% endfor %}
+            {% for skill in breakdown.preferred_missing %}
+              <span class="badge bg-light text-muted border">
+                {{ skill }} (Preferred)
+              </span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Transparent Explanation Breakdown -->
+  <div class="col-lg-5 mb-4">
+    <div class="card p-4">
+      <h5 class="fw-bold border-bottom pb-2 mb-3">
+        <i class="bi bi-journal-text text-primary me-2"></i>Why This Score?
+      </h5>
+
+      <p class="small text-muted">
+        Our scoring engine is 100% rule-based and transparent. Here is the exact calculation breakdown:
+      </p>
+
+      <ul class="list-group list-group-flush mb-4">
+        {% for exp in breakdown.explanations %}
+          <li class="list-group-item px-0 py-2 small d-flex align-items-start gap-2">
+            <i class="bi bi-arrow-right-circle text-primary mt-1"></i>
+            <div>{{ exp }}</div>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <div class="bg-light p-3 rounded border small mb-3">
+        <strong>Mathematical Formula:</strong>
+        <div class="font-monospace mt-1 text-secondary">
+          Final Score = ({{ breakdown.skill_score }} &times; 0.60) + ({{ breakdown.experience_score }} &times; 0.20) + ({{ breakdown.education_score }} &times; 0.20) = <strong>{{ breakdown.total_score }}%</strong>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <a href="{% url 'applications:apply_job' job.id %}" class="btn btn-primary flex-fill">
+          Apply for this Position
+        </a>
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+          Edit Profile
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

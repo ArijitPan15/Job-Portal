@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Applicants: {{ job.title }} - SkillMatch{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+    <div>
+      <a href="{% url 'accounts:profile' %}" class="small text-muted text-decoration-none">&larr; Back to Recruiter Dashboard</a>
+      <h3 class="fw-bold mb-0 mt-1">Applicants for: {{ job.title }}</h3>
+      <p class="text-muted small mb-0">{{ job.company_name }} &bull; Ranked by calculated match score</p>
+    </div>
+    <span class="badge bg-primary fs-6">{{ applications|length }} Candidate(s)</span>
+  </div>
+
+  {% if applications %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Candidate</th>
+            <th>Match Score</th>
+            <th>Experience</th>
+            <th>Education</th>
+            <th>Applied</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in applications %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ app.candidate.get_full_name|default:app.candidate.username }}</div>
+                <div class="small text-muted">{{ app.candidate.candidate_profile.headline|default:'Candidate' }}</div>
+              </td>
+              <td>
+                <span class="badge {% if app.match_score_snapshot >= 75 %}bg-success{% elif app.match_score_snapshot >= 50 %}bg-warning text-dark{% else %}bg-secondary{% endif %} fs-6">
+                  {{ app.match_score_snapshot|floatformat:0 }}%
+                </span>
+              </td>
+              <td class="small">{{ app.candidate.candidate_profile.years_of_experience }} yr(s)</td>
+              <td class="small">{{ app.candidate.candidate_profile.get_education_level_display }}</td>
+              <td class="small text-muted">{{ app.applied_at|date:"M d, Y" }}</td>
+              <td>
+                <form method="post" action="{% url 'applications:update_status' app.id %}" class="d-flex gap-1">
+                  {% csrf_token %}
+                  <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    {% for val, label in status_choices %}
+                      <option value="{{ val }}" {% if app.status == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </form>
+              </td>
+              <td>
+                <a href="{% url 'matching:recruiter_candidate_match' job.id app.candidate.candidate_profile.id %}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-eye me-1"></i> Inspect Gap
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-people display-5 text-secondary mb-3 d-block"></i>
+      <h5>No applications received yet</h5>
+      <p class="small">Candidates browsing the platform will be matched automatically based on required skills.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

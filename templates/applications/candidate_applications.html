@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}My Job Applications - SkillMatch{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+    <div>
+      <h3 class="fw-bold mb-0">My Applications</h3>
+      <p class="text-muted small mb-0">Track all job submissions and your match score snapshots</p>
+    </div>
+    <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-search me-1"></i> Browse More Jobs
+    </a>
+  </div>
+
+  {% if applications %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Job Title &amp; Company</th>
+            <th>Match Snapshot</th>
+            <th>Skills Overlap</th>
+            <th>Applied Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in applications %}
+            <tr>
+              <td>
+                <h6 class="mb-0 fw-bold">
+                  <a href="{% url 'jobs:job_detail' app.job.id %}" class="text-decoration-none text-dark">
+                    {{ app.job.title }}
+                  </a>
+                </h6>
+                <small class="text-muted">{{ app.job.company_name }} &bull; {{ app.job.location }}</small>
+              </td>
+              <td>
+                <span class="badge {% if app.match_score_snapshot >= 75 %}bg-success{% elif app.match_score_snapshot >= 50 %}bg-warning text-dark{% else %}bg-secondary{% endif %} fs-6">
+                  {{ app.match_score_snapshot|floatformat:0 }}%
+                </span>
+              </td>
+              <td>
+                <span class="text-success small fw-semibold">
+                  <i class="bi bi-check-circle me-1"></i>{{ app.matched_skills_count }} matched
+                </span>
+                <span class="text-muted small">/</span>
+                <span class="text-danger small fw-semibold">
+                  {{ app.missing_skills_count }} missing
+                </span>
+              </td>
+              <td class="small text-muted">{{ app.applied_at|date:"M d, Y" }}</td>
+              <td>
+                <span class="badge {% if app.status == 'accepted' %}bg-success{% elif app.status == 'shortlisted' %}bg-primary{% elif app.status == 'under_review' %}bg-info text-dark{% elif app.status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %} p-2">
+                  {{ app.get_status_display }}
+                </span>
+              </td>
+              <td>
+                <a href="{% url 'matching:gap_detail' app.job.id %}" class="btn btn-sm btn-outline-info text-dark">
+                  <i class="bi bi-graph-up me-1"></i> Skill Gap
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-inbox display-5 text-secondary mb-3 d-block"></i>
+      <h5>You have not applied for any jobs yet.</h5>
+      <p class="small">Explore active postings and let our match engine highlight jobs fitting your skill set!</p>
+      <a href="{% url 'jobs:job_list' %}" class="btn btn-primary btn-sm">Find Suitable Jobs</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

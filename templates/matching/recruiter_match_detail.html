@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Applicant Skill-Gap Review: {{ candidate.user.username }} - SkillMatch{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12 mb-3">
+    <a href="{% url 'applications:recruiter_job_applications' job.id %}" class="text-decoration-none text-muted small">
+      &larr; Back to Applicants for {{ job.title }}
+    </a>
+  </div>
+
+  <div class="col-12 mb-4">
+    <div class="card p-4 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <span class="badge bg-secondary mb-1">Recruiter Applicant Evaluation</span>
+          <h3 class="fw-bold mb-0">{{ candidate.user.get_full_name|default:candidate.user.username }}</h3>
+          <p class="text-muted mb-0">{{ candidate.headline|default:'Candidate' }} &bull; {{ candidate.years_of_experience }} years exp &bull; {{ candidate.get_education_level_display }}</p>
+        </div>
+        <div class="text-center">
+          <div class="match-ring {% if breakdown.total_score >= 75 %}match-high{% elif breakdown.total_score >= 50 %}match-mid{% else %}match-low{% endif %} fs-3">
+            {{ breakdown.total_score }}%
+          </div>
+          <span class="small text-muted fw-bold">Overall Fit</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6 mb-4">
+    <div class="card p-4 h-100">
+      <h5 class="fw-bold text-success mb-3">
+        <i class="bi bi-check-circle-fill me-1"></i>Skills Possessed ({{ breakdown.matched_skills|length }})
+      </h5>
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        {% for s in breakdown.matched_skills %}
+          <span class="badge-matched badge-skill py-2 px-3">{{ s }}</span>
+        {% empty %}
+          <span class="text-muted">None of the mandatory skills match.</span>
+        {% endfor %}
+      </div>
+
+      <h5 class="fw-bold text-danger mb-3">
+        <i class="bi bi-x-circle-fill me-1"></i>Candidate Skill Gaps ({{ breakdown.missing_skills|length }})
+      </h5>
+      <div class="d-flex flex-wrap gap-2">
+        {% for s in breakdown.missing_skills %}
+          <span class="badge-missing badge-skill py-2 px-3">{{ s }}</span>
+        {% empty %}
+          <span class="text-success small fw-bold">Candidate satisfies all required skills!</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6 mb-4">
+    <div class="card p-4 h-100">
+      <h5 class="fw-bold mb-3">Score Calculation Breakdown</h5>
+      <ul class="list-group list-group-flush mb-3">
+        {% for exp in breakdown.explanations %}
+          <li class="list-group-item px-0 py-2 small">
+            <i class="bi bi-check-circle text-primary me-2"></i>{{ exp }}
+          </li>
+        {% endfor %}
+      </ul>
+
+      {% if candidate.resume %}
+        <div class="mt-auto pt-3 border-top">
+          <a href="{{ candidate.resume.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-file-earmark-pdf me-1"></i> View Candidate Resume
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

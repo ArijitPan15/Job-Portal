@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Create an Account - SkillMatch{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card p-4 shadow-sm border-0">
+      <div class="text-center mb-4">
+        <h3 class="fw-bold text-dark">Join SkillMatch</h3>
+        <p class="text-muted">Smart Skill-Gap Analysis & Transparent Job Matching</p>
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">I am registering as:</label>
+          <div class="d-flex gap-2">
+            {% for choice in form.role %}
+              <div class="flex-fill border rounded p-2 text-center role-box">
+                {{ choice.tag }}
+                <label for="{{ choice.id_for_label }}" class="d-block cursor-pointer">
+                  <strong>{{ choice.choice_label }}</strong>
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+          {% if form.role.errors %}
+            <div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" value="{{ form.username.value|default:'' }}" required>
+          {% if form.username.errors %}
+            <div class="invalid-feedback">{{ form.username.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Email Address</label>
+          <input type="email" name="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" value="{{ form.email.value|default:'' }}" required>
+          {% if form.email.errors %}
+            <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">First Name</label>
+            <input type="text" name="first_name" class="form-control" value="{{ form.first_name.value|default:'' }}">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Last Name</label>
+            <input type="text" name="last_name" class="form-control" value="{{ form.last_name.value|default:'' }}">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password1" class="form-control {% if form.password1.errors %}is-invalid{% endif %}" required>
+          {% if form.password1.errors %}
+            <div class="invalid-feedback">{{ form.password1.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Confirm Password</label>
+          <input type="password" name="password2" class="form-control {% if form.password2.errors %}is-invalid{% endif %}" required>
+          {% if form.password2.errors %}
+            <div class="invalid-feedback">{{ form.password2.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+          Create Account
+        </button>
+      </form>
+
+      <div class="text-center mt-3 small text-muted">
+        Already have an account? <a href="{% url 'accounts:login' %}" class="fw-semibold text-primary">Log in here</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

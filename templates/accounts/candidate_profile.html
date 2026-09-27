@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Profile & Skills - SkillMatch{% endblock %}
+
+{% block content %}
+<div class="row">
+  <!-- Profile Info & Qualifications -->
+  <div class="col-lg-7 mb-4">
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h4 class="fw-bold mb-0">
+          <i class="bi bi-person-lines-fill text-primary me-2"></i>My Profile
+        </h4>
+        <span class="badge bg-success">Job Seeker</span>
+      </div>
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="update_profile" value="1">
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Professional Headline</label>
+          {{ profile_form.headline }}
+          <div class="form-text">e.g. Full Stack Python Developer | Django & React</div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold">Years of Experience</label>
+            {{ profile_form.years_of_experience }}
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold">Highest Education Level</label>
+            {{ profile_form.education_level }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">About / Professional Bio</label>
+          {{ profile_form.bio }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Resume Document</label>
+          {{ profile_form.resume }}
+          {% if candidate_profile.resume %}
+            <div class="small text-muted mt-1">
+              Current: <a href="{{ candidate_profile.resume.url }}" target="_blank">{{ candidate_profile.resume.name }}</a>
+            </div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check2-circle me-1"></i> Save Profile Details
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Candidate Skills Section -->
+  <div class="col-lg-5 mb-4">
+    <div class="card p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h5 class="fw-bold mb-0">
+          <i class="bi bi-tools text-primary me-2"></i>My Skills
+        </h5>
+        <span class="badge bg-primary rounded-pill">{{ candidate_skills|length }} skills</span>
+      </div>
+
+      <!-- Add Skill Form -->
+      <form method="post" action="{% url 'accounts:add_skill' %}" class="bg-light p-3 rounded mb-3 border">
+        {% csrf_token %}
+        <h6 class="fw-semibold mb-2">Add New Skill</h6>
+        <div class="mb-2">
+          <label class="form-label small">Select Skill</label>
+          {{ skill_form.skill }}
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label small">Proficiency</label>
+            {{ skill_form.proficiency }}
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Years</label>
+            {{ skill_form.years_practiced }}
+          </div>
+        </div>
+        <button type="submit" class="btn btn-sm btn-outline-primary w-100">
+          <i class="bi bi-plus-lg me-1"></i> Add Skill to Profile
+        </button>
+      </form>
+
+      <!-- Current Skills List -->
+      <div class="skill-list">
+        {% if candidate_skills %}
+          <div class="d-flex flex-wrap gap-2">
+            {% for cs in candidate_skills %}
+              <div class="badge-matched badge-skill d-flex align-items-center gap-2">
+                <strong>{{ cs.skill.name }}</strong>
+                <span class="text-muted small">({{ cs.get_proficiency_display }})</span>
+                <form method="post" action="{% url 'accounts:remove_skill' cs.id %}" class="d-inline m-0 p-0">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-close btn-close-sm" style="font-size: 0.65rem;" title="Remove skill"></button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted small">
+            <i class="bi bi-lightbulb display-6 d-block text-warning mb-2"></i>
+            No skills added yet. Add Python, Django, PostgreSQL, Docker, etc., to power your automatic match scores!
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

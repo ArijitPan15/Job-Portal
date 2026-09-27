@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Jobs - SkillMatch{% endblock %}
+
+{% block content %}
+<!-- Search & Filter Header -->
+<div class="card p-3 mb-4 bg-white">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-md-5">
+      <div class="input-group">
+        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+        {{ filter_form.q }}
+      </div>
+    </div>
+    <div class="col-md-3">
+      {{ filter_form.job_type }}
+    </div>
+    {% if is_candidate %}
+      <div class="col-md-2">
+        {{ filter_form.min_match }}
+      </div>
+    {% endif %}
+    <div class="col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-primary w-100">Filter</button>
+      <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-secondary">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Candidate Status Banner if Logged in -->
+{% if is_candidate %}
+  <div class="alert alert-info py-2 px-3 d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center gap-2 small">
+      <i class="bi bi-speedometer2 fs-5 text-primary"></i>
+      <span><strong>Live Match Engine Active:</strong> Jobs are dynamically ranked by your match score based on 60% Skills, 20% Experience, and 20% Education.</span>
+    </div>
+    <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-outline-primary py-0">Edit My Skills</a>
+  </div>
+{% endif %}
+
+<!-- Job Listing Cards -->
+<div class="row">
+  {% if enriched_jobs %}
+    {% for item in enriched_jobs %}
+      {% with job=item.job breakdown=item.breakdown has_applied=item.has_applied %}
+        <div class="col-12 mb-3">
+          <div class="card p-3 transition-card hover-shadow">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <h5 class="fw-bold mb-0">
+                    <a href="{% url 'jobs:job_detail' job.id %}" class="text-decoration-none text-dark">
+                      {{ job.title }}
+                    </a>
+                  </h5>
+                  <span class="badge bg-light text-dark border">{{ job.get_job_type_display }}</span>
+                  {% if has_applied %}
+                    <span class="badge bg-info text-dark"><i class="bi bi-check2 me-1"></i>Applied</span>
+                  {% endif %}
+                </div>
+
+                <div class="text-muted small mb-2">
+                  <strong class="text-secondary">{{ job.company_name }}</strong> &bull;
+                  <i class="bi bi-geo-alt me-1"></i>{{ job.location }} &bull;
+                  <i class="bi bi-briefcase me-1"></i>Min {{ job.min_experience_years }} yr(s) exp &bull;
+                  <i class="bi bi-mortarboard me-1"></i>{{ job.get_min_education_level_display }}
+                  {% if job.salary_range %}&bull; <span class="text-success fw-semibold">{{ job.salary_range }}</span>{% endif %}
+                </div>
+
+                <!-- Skills & Skill Gap Breakdown Display -->
+                <div class="skills-block mt-2">
+                  {% if breakdown %}
+                    <div class="d-flex flex-wrap align-items-center gap-1">
+                      <span class="small text-muted me-1">Required:</span>
+                      {% for skill in breakdown.matched_skills %}
+                        <span class="badge-skill badge-matched" title="You have this skill!">
+                          <i class="bi bi-check-circle-fill me-1"></i>{{ skill }}
+                        </span>
+                      {% endfor %}
+                      {% for skill in breakdown.missing_skills %}
+                        <span class="badge-skill badge-missing" title="Missing required skill">
+                          <i class="bi bi-x-circle me-1"></i>{{ skill }}
+                        </span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <!-- For guest/recruiter view -->
+                    <div class="d-flex flex-wrap gap-1">
+                      {% for js in job.job_skills.all %}
+                        <span class="badge bg-light text-dark border">
+                          {{ js.skill.name }}{% if js.is_required %}*{% endif %}
+                        </span>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Match Score Ring / Action Column -->
+              <div class="col-md-4 mt-3 mt-md-0 d-flex align-items-center justify-content-md-end gap-3">
+                {% if breakdown %}
+                  <div class="text-center">
+                    <div class="match-ring {% if breakdown.total_score >= 75 %}match-high{% elif breakdown.total_score >= 50 %}match-mid{% else %}match-low{% endif %}">
+                      {{ breakdown.total_score|floatformat:0 }}%
+                    </div>
+                    <span class="small text-muted d-block mt-1">Match Score</span>
+                  </div>
+
+                  <div class="d-flex flex-column gap-2">
+                    <a href="{% url 'matching:gap_detail' job.id %}" class="btn btn-sm btn-outline-info text-dark">
+                      <i class="bi bi-graph-up me-1"></i> Skill Gap
+                    </a>
+                    {% if not has_applied %}
+                      <a href="{% url 'applications:apply_job' job.id %}" class="btn btn-sm btn-primary">
+                        Apply Now
+                      </a>
+                    {% else %}
+                      <button class="btn btn-sm btn-secondary" disabled>Applied</button>
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline-primary">
+                    View Details
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endwith %}
+    {% endfor %}
+  {% else %}
+    <div class="col-12">
+      <div class="card p-5 text-center text-muted">
+        <i class="bi bi-search display-5 mb-3 text-secondary"></i>
+        <h5>No jobs match your filter criteria</h5>
+        <p class="small">Try clearing filters or search terms.</p>
+        <div>
+          <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-primary btn-sm">View All Jobs</a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Recruiter Dashboard - SkillMatch{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-5 mb-4">
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h4 class="fw-bold mb-0">
+          <i class="bi bi-building text-primary me-2"></i>Company Profile
+        </h4>
+        <span class="badge bg-primary">Recruiter</span>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Company Name</label>
+          {{ form.company_name }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Company Website</label>
+          {{ form.company_website }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Location / Headquarters</label>
+          {{ form.location }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Company Description</label>
+          {{ form.company_description }}
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check2 me-1"></i> Update Company Info
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-7 mb-4">
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h4 class="fw-bold mb-0">
+          <i class="bi bi-briefcase text-primary me-2"></i>My Job Postings
+        </h4>
+        <a href="{% url 'jobs:job_create' %}" class="btn btn-sm btn-primary">
+          <i class="bi bi-plus-lg me-1"></i> Post New Job
+        </a>
+      </div>
+
+      {% if posted_jobs %}
+        <div class="list-group list-group-flush">
+          {% for job in posted_jobs %}
+            <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="mb-1 fw-bold">
+                  <a href="{% url 'jobs:job_detail' job.id %}" class="text-decoration-none text-dark">
+                    {{ job.title }}
+                  </a>
+                </h5>
+                <div class="text-muted small">
+                  <i class="bi bi-geo-alt me-1"></i>{{ job.location }} &bull;
+                  <span class="badge bg-light text-dark border">{{ job.get_job_type_display }}</span> &bull;
+                  <span>{{ job.applications.count }} applicants</span>
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="{% url 'applications:recruiter_job_applications' job.id %}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-people me-1"></i> View Applicants ({{ job.applications.count }})
+                </a>
+                <a href="{% url 'jobs:job_skills' job.id %}" class="btn btn-sm btn-outline-secondary" title="Manage Skills">
+                  <i class="bi bi-tools"></i>
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-clipboard-plus display-6 text-primary mb-2 d-block"></i>
+          You have not posted any jobs yet. Click "Post New Job" to begin hiring.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

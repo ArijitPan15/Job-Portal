@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Required Skills: {{ job.title }} - SkillMatch{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-6 mb-4">
+    <div class="card p-4">
+      <div class="border-bottom pb-3 mb-3">
+        <h4 class="fw-bold mb-1">Define Skills for Job</h4>
+        <h6 class="text-primary">{{ job.title }} &bull; {{ job.company_name }}</h6>
+        <p class="small text-muted mb-0">These skills drive the transparent 60% Skill Match algorithm for applicants.</p>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="add_skill" value="1">
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Select Skill</label>
+          {{ form.skill }}
+        </div>
+
+        <div class="mb-3 form-check">
+          {{ form.is_required }}
+          <label class="form-check-label fw-semibold" for="{{ form.is_required.id_for_label }}">
+            Mandatory / Must-Have Skill
+          </label>
+          <div class="form-text small">If checked, candidates lacking this skill will see it under "Missing Skills" and lose match percentage.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Skill Importance Weight (1 to 5)</label>
+          {{ form.weight }}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="bi bi-plus-circle me-1"></i> Add Skill to Job
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-6 mb-4">
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h5 class="fw-bold mb-0">Current Job Skills ({{ current_skills|length }})</h5>
+        <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-sm btn-outline-success">
+          <i class="bi bi-eye me-1"></i> View Live Job
+        </a>
+      </div>
+
+      {% if current_skills %}
+        <div class="list-group list-group-flush">
+          {% for js in current_skills %}
+            <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ js.skill.name }}</strong>
+                {% if js.is_required %}
+                  <span class="badge bg-danger ms-2">Required</span>
+                {% else %}
+                  <span class="badge bg-secondary ms-2">Nice-to-have</span>
+                {% endif %}
+                <span class="text-muted small ms-2">Weight: {{ js.weight }}</span>
+              </div>
+              <form method="post" action="{% url 'jobs:job_remove_skill' job.id js.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove skill">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-4 text-muted small">
+          <i class="bi bi-exclamation-triangle display-6 text-warning mb-2 d-block"></i>
+          No skills added yet. Add Python, PostgreSQL, Docker, etc., to establish matching criteria.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

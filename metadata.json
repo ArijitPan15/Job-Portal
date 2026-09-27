@@ -1,0 +1,8 @@
+{
+  "name": "Django Smart Job Matching & Skill-Gap Portal",
+  "description": "Smart Job Matching & Skill-Gap Job Portal built with Django, featuring transparent skill-gap scoring, recruiter job management, candidate profiles, and application tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

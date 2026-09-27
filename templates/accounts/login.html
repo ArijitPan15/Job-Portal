@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Log In - SkillMatch{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card p-4 shadow-sm border-0">
+      <div class="text-center mb-4">
+        <h3 class="fw-bold text-dark">Sign In</h3>
+        <p class="text-muted">Access your candidate or recruiter portal</p>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" required autofocus>
+        </div>
+        <div class="mb-4">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+          Sign In
+        </button>
+      </form>
+
+      <div class="text-center mt-3 small text-muted">
+        Don't have an account? <a href="{% url 'accounts:register' %}" class="fw-semibold text-primary">Register now</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
